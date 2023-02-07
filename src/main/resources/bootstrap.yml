@@ -1,0 +1,48 @@
+spring:
+  cloud:
+    nacos:
+      discovery:
+        service: ${spring.application.name}
+        server-addr: ${szt.nacos.addr}
+        namespace: ${szt.nacos.namespace}
+        group: ${szt.nacos.group}
+      config:
+        file-extension: yaml
+        server-addr: ${szt.nacos.addr}
+        name: ${szt.nacos.config-name}
+        namespace: ${szt.nacos.namespace}
+        group: ${szt.nacos.group}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: develop-v4p1
+szt:
+  nacos:
+    addr: 47.108.72.215:8848
+    config-name: teldrassil-sprint
+    namespace: develop-v4p1
+    group: develop-v4p1
+---
+spring:
+  config:
+    activate:
+      on-profile: rel-v4p1
+szt:
+  nacos:
+    addr: 10.4.7.225:8848
+    config-name: teldrassil-sprint
+    namespace: rel-v4p1
+    group: rel-v4p1
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+szt:
+  nacos:
+    addr: 47.108.72.215:8848
+    config-name: teldrassil-sprint
+    namespace: local
+    group: Free
