@@ -11,8 +11,11 @@ import lombok.Data;
 @Entity
 @Data
 public class RelationSprintTaskToPlan {
+
+
     @Column
     private Long planId;
+
 
     @Column
     private Long taskId;

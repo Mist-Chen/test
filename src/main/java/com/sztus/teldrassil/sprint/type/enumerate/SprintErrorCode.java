@@ -8,8 +8,9 @@ import com.sztus.framework.component.core.base.BaseError;
 
 public enum SprintErrorCode implements BaseError {
 
+    // 参数校验异常
     DATA_SAVE_ERROR(-83050302, "Data save error."),
-
+    PARAMETER_CHECK_ERROR(-95540001,"This parameter check error !")
     ;
 
     SprintErrorCode(Integer code, String message) {

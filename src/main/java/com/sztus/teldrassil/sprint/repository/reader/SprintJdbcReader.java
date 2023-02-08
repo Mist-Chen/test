@@ -12,4 +12,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class SprintJdbcReader extends BaseJdbcReader {
     private static final Logger logger = LoggerFactory.getLogger(SprintJdbcReader.class);
+
+
 }
