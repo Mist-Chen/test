@@ -2,6 +2,8 @@ package com.sztus.teldrassil.sprint.object.business.vo;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 /**
  * @Author free
  **/
@@ -16,5 +18,8 @@ public class TaskStatusCountVo {
     private Integer countOfReleased;
 
     private Integer countOfTotal;
+
+    private BigDecimal ratioOfSprintTask;
+
 
 }

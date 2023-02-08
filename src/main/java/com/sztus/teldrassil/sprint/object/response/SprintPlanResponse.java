@@ -7,7 +7,7 @@ import lombok.Data;
  * @Author free
  **/
 @Data
-public class SprintPlanResponse  {
+public class SprintPlanResponse {
     private Long id;
 
     private String name;
@@ -17,8 +17,6 @@ public class SprintPlanResponse  {
     private Integer status;
 
     private String startDate;
-
-    private Integer ratioOfSprintTask;
 
     private TaskStatusCountVo taskStatusCountVo;
 }
