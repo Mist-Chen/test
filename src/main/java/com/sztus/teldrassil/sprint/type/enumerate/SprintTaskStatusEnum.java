@@ -15,6 +15,7 @@ public enum SprintTaskStatusEnum implements BaseEnum {
     TESTED(3, "Tested", 60),
     SETTLED(4, "Settled", 80),
     RELEASED(10, "Released", 100),
+    TOTAL(11, "Total", 0),
     ;
 
 

@@ -7,7 +7,7 @@ import lombok.Data;
  * @Author free
  **/
 @Data
-public class SprintPlanResponse {
+public class SprintPlanResponse  extends TaskStatusCountVo{
     private Long id;
 
     private String name;
@@ -18,5 +18,4 @@ public class SprintPlanResponse {
 
     private String startDate;
 
-    private TaskStatusCountVo taskStatusCountVo;
 }

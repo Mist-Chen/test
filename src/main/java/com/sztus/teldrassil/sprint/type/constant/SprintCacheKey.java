@@ -9,4 +9,7 @@ public interface SprintCacheKey {
     String EMPLOYEE_LIST = "employeeList";
     String BEGIN = "begin";
     String END = "end";
+
+    String INDEX = "index";
+    String SIZE = "size";
 }

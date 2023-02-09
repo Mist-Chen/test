@@ -21,19 +21,39 @@ import java.util.Set;
  */
 @Repository
 public class SprintJdbcReader extends BaseJdbcReader {
-    private static final Logger logger = LoggerFactory.getLogger(SprintJdbcReader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SprintJdbcReader.class);
 
-
-    public List<SprintAndPlanIdBo> findSprintByLineId(Long lineId) {
+    /**
+     * 根据lineId，分页查询sprint
+     * @param lineId departmentId
+     * @param page 页
+     * @param size 大小
+     * @return
+     */
+    public List<SprintAndPlanIdBo> findSprintByLineId(Long lineId, Integer page, Integer size) {
         StringBuilder sql = new StringBuilder();
         HashMap<String, Object> paramMap = new HashMap<>(1);
         sql.append(" SELECT t1.id,t1.`name`,t1.start_date,t1.due_date,t1.`status`,t2.id as planId ");
         sql.append(" FROM sprint t1 ");
         sql.append(" INNER JOIN sprint_plan t2 ON t1.id=t2.sprint_id ");
+
         if (Objects.nonNull(lineId)) {
             sql.append(" WHERE t2.line_id = :lineId ");
             paramMap.put(SprintCacheKey.LINE_ID, lineId);
         }
+
+        //分页
+        if (Objects.isNull(page) || page < 1) {
+            page = 1;
+        }
+        if (Objects.isNull(size) || size < 1) {
+            size = 10;
+        }
+        Integer index = (page - 1) * size;
+        sql.append(" LIMIT :index, :size");
+        paramMap.put(SprintCacheKey.INDEX, index);
+        paramMap.put(SprintCacheKey.SIZE, size);
+
         return namedJdbcTemplate().query(sql.toString(), paramMap, new BeanPropertyRowMapper<>(SprintAndPlanIdBo.class));
     }
 
