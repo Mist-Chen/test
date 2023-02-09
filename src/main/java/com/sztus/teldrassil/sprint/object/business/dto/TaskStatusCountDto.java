@@ -7,7 +7,7 @@ import lombok.Data;
  **/
 @Data
 public class TaskStatusCountDto {
-    private Integer planId;
+    private Long planId;
 
     private Integer status;
 

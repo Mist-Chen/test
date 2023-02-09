@@ -9,7 +9,7 @@ import java.math.BigDecimal;
  **/
 @Data
 public class TaskStatusCountBo {
-    private Integer planId;
+    private Long planId;
 
     private Integer countOfToDo;
 
