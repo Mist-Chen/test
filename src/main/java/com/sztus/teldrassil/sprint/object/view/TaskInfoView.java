@@ -10,7 +10,7 @@ import lombok.Data;
 @Data
 public class TaskInfoView {
 
-    private String taskStatus;
+    private Integer taskStatus;
 
     private Integer count;
 }

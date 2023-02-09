@@ -3,15 +3,23 @@ package com.sztus.teldrassil.sprint.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.sztus.framework.component.core.constant.GlobalConst;
+import com.sztus.framework.component.core.type.ProcedureException;
 import com.sztus.framework.component.database.type.SqlOption;
 import com.sztus.teldrassil.sprint.api.client.EmployeeApi;
 import com.sztus.teldrassil.sprint.api.client.SystemApi;
+import com.sztus.teldrassil.sprint.api.request.SearchEmployeeByConditionRequest;
 import com.sztus.teldrassil.sprint.api.response.GetSystemListResponse;
+import com.sztus.teldrassil.sprint.api.response.SearchEmployeeByConditionResponse;
+import com.sztus.teldrassil.sprint.api.view.EmployeePersonalView;
+import com.sztus.teldrassil.sprint.api.view.EmployeeView;
 import com.sztus.teldrassil.sprint.api.view.SystemView;
 import com.sztus.teldrassil.sprint.component.converter.SprintConverter;
 import com.sztus.teldrassil.sprint.object.domain.*;
+import com.sztus.teldrassil.sprint.object.request.TaskInfoRequest;
 import com.sztus.teldrassil.sprint.object.response.SprintTaskInfoResponse;
 import com.sztus.teldrassil.sprint.object.response.SystemSummaryResponse;
+import com.sztus.teldrassil.sprint.object.view.SprintEmployeeView;
 import com.sztus.teldrassil.sprint.object.view.SystemViewForSprint;
 import com.sztus.teldrassil.sprint.object.view.TaskInfoView;
 import com.sztus.teldrassil.sprint.object.view.TaskView;
@@ -50,14 +58,19 @@ public class SprintService {
         this.employeeApi = employeeApi;
     }
 
-    public SprintTaskInfoResponse listSprintTaskBySprintIdAndDepartmentId(Long sprintId, Integer lineId) {
+    public SprintTaskInfoResponse listSprintTaskBySprintIdAndDepartmentId(TaskInfoRequest taskInfoRequest) {
+
+        Long sprintId = taskInfoRequest.getSprintId();
+        Long lineId = taskInfoRequest.getLineId();
+        Integer page = taskInfoRequest.getPage();
+        Integer size = taskInfoRequest.getSize();
 
         List<Long> taskIds = getTaskIds(sprintId, lineId);
         if (CollectionUtils.isEmpty(taskIds)) {
             return null;
         }
 
-        SqlOption taskOption = SqlOption.getInstance().whereIN(DbKeyConstant.ID, taskIds);
+        SqlOption taskOption = SqlOption.getInstance().whereIN(DbKeyConstant.ID, taskIds).page(page, size);
         List<SprintTask> taskList = sprintJdbcReader.findAllByOptions(SprintTask.class, taskOption.toString());
 
         SqlOption taskContentOption = SqlOption.getInstance().whereIN(DbKeyConstant.TASK_ID, taskIds);
@@ -66,7 +79,7 @@ public class SprintService {
 
         SqlOption employeeOption = SqlOption.getInstance().whereIN(DbKeyConstant.TASK_ID, taskIds);
         List<SprintTaskAssignee> employeeList = sprintJdbcReader.findAllByOptions(SprintTaskAssignee.class, employeeOption.toString());
-        Map<Long, SprintTaskAssignee> taskAssigneeMap = employeeList.stream().collect(Collectors.toMap(SprintTaskAssignee::getTaskId, O -> O));
+        Map<Long, SprintTaskAssignee> taskAssigneeMap = employeeList.stream().collect(Collectors.toMap(SprintTaskAssignee::getTaskId, o -> o));
 
         ArrayList<TaskView> items = new ArrayList<>();
         taskList.forEach(sprintTask -> {
@@ -74,9 +87,10 @@ public class SprintService {
             String systemNameFromRedis = getSystemNameFromRedis(sprintTask.getSystemId());
             SprintTaskAssignee sprintTaskAssignee = taskAssigneeMap.get(taskId);
 
-            getEmployeeNameByClient(sprintTaskAssignee.getEmployeeId());
+            String name = getEmployeeNameByClient(sprintTaskAssignee.getEmployeeId());
             TaskView taskView = SprintConverter.INSTANCE.sprintTaskAndContentToTaskView(sprintTask, contentMap.get(taskId));
             taskView.setSystemName(systemNameFromRedis);
+            taskView.setEmployeeName(name);
             items.add(taskView);
         });
 
@@ -86,9 +100,32 @@ public class SprintService {
         return sprintTaskInfoResponse;
     }
 
-    private void getEmployeeNameByClient(Long employeeId) {
+    private String getEmployeeNameByClient(Long employeeId) {
+        SearchEmployeeByConditionRequest request = new SearchEmployeeByConditionRequest();
+        request.setCompanyId((long) GlobalConst.INT_ONE);
+        try {
+            SearchEmployeeByConditionResponse response = employeeApi.searchEmployeeByCondition(request);
+            List<EmployeeView> items = response.getItems();
+            Optional<EmployeeView> viewOptional = items.stream().filter(employeeView -> Objects.equals(employeeView.getId(), employeeId)).findFirst();
 
+            if (!viewOptional.isPresent()) {
+                return null;
+            }
+            EmployeeView employeeView = viewOptional.get();
+            EmployeePersonalView personal = employeeView.getPersonal();
 
+            return getFullName(personal.getFirstName(), personal.getMiddleName(), personal.getLastName());
+        } catch (ProcedureException e) {
+            LOGGER.error("[getEmployeeNameByClient] >>> Get EmployeeName Error!", e);
+            return null;
+        }
+
+    }
+
+    private String getFullName(String firstName, String middleName, String lastName) {
+        return (Objects.nonNull(firstName) ? firstName : "") + " "
+                + (Objects.nonNull(middleName) ? middleName + " ": "")
+                + (Objects.nonNull(lastName) ? lastName : "");
     }
 
     private String getSystemNameFromRedis(Long systemId) {
@@ -97,7 +134,7 @@ public class SprintService {
         return jsonObject.get(SprintCacheKey.SYSTEM_NAME).toString();
     }
 
-    private List<Long> getTaskIds(Long sprintId, Integer lineId) {
+    private List<Long> getTaskIds(Long sprintId, Long lineId) {
         SqlOption option = SqlOption.getInstance().whereEqual(DbKeyConstant.SPRINT_ID, sprintId).select(DbKeyConstant.ID);
         if (Objects.isNull(lineId)) {
             option.whereEqual(DbKeyConstant.LINE_ID, lineId);
@@ -121,11 +158,11 @@ public class SprintService {
                 .collect(Collectors.toList());
     }
 
-    public List<SystemSummaryResponse> systemSummaryQueryBySprintIdAndDepartmentId(Long sprintId, Integer lineId) {
+    public List<SystemSummaryResponse> systemSummaryQueryBySprintIdAndDepartmentId(Long sprintId, Long lineId) {
 
         List<Long> taskIds = getTaskIds(sprintId, lineId);
         if (CollectionUtils.isEmpty(taskIds)) {
-            return null;
+            return Collections.emptyList();
         }
 
         SqlOption taskOption = SqlOption.getInstance().whereIN(DbKeyConstant.ID, taskIds);
@@ -143,31 +180,16 @@ public class SprintService {
             for (SprintTaskStatusEnum taskStatusEnum : SprintTaskStatusEnum.values()) {
                 List<SprintTask> list = statusMap.get(taskStatusEnum.getValue());
                 TaskInfoView taskInfoView = new TaskInfoView();
-                taskInfoView.setCount(list.size());
 
-                switch (taskStatusEnum) {
-                    case CANCELLED:
-                    case TODO:
-                    case RELEASED:
-                        taskInfoView.setTaskStatus(taskStatusEnum.getText());
-                        break;
-                    case DESIGNED:
-                    case IMPLEMENTED:
-                    case TESTED:
-                    case SETTLED:
-                        taskInfoView.setTaskStatus(SprintCacheKey.IN_PROGRESS);
-                        break;
-                    default:
-                        break;
+                if (Objects.equals(taskStatusEnum, TOTAL)) {
+                    taskInfoView.setCount(sprintTasks.size());
+                } else {
+                    taskInfoView.setCount(list.size());
                 }
 
+                taskInfoView.setTaskStatus(taskStatusEnum.getValue());
                 taskInfoViews.add(taskInfoView);
             }
-
-            TaskInfoView total = new TaskInfoView();
-            total.setTaskStatus(SprintCacheKey.TOTAL);
-            total.setCount(sprintTasks.size());
-            taskInfoViews.add(total);
 
             response.setTaskInfo(taskInfoViews);
             response.setSystemName(getSystemNameFromRedis(systemId));
@@ -210,5 +232,30 @@ public class SprintService {
             LOGGER.error("[systemListQuery] >>> System API Call Error!", e);
             return Collections.emptyList();
         }
+    }
+
+    public List<SprintEmployeeView> employeeListQuery(Long lineId) {
+        SearchEmployeeByConditionRequest request = new SearchEmployeeByConditionRequest();
+        ArrayList<SprintEmployeeView> employeeViewArrayList = new ArrayList<>();
+        try {
+            SearchEmployeeByConditionResponse response = employeeApi.searchEmployeeByCondition(request);
+            List<EmployeeView> items = response.getItems();
+
+            if (Objects.nonNull(lineId)) {
+                items = items.stream().filter(item -> Objects.equals(item.getDepartmentId(), lineId)).collect(Collectors.toList());
+            }
+
+            items.forEach(employeeView -> {
+                SprintEmployeeView view = new SprintEmployeeView();
+                view.setEmployeeId(employeeView.getId());
+                EmployeePersonalView personal = employeeView.getPersonal();
+                view.setEmployeeName(getFullName(personal.getFirstName(), personal.getMiddleName(), personal.getLastName()));
+                employeeViewArrayList.add(view);
+            });
+            return employeeViewArrayList;
+        } catch (ProcedureException e) {
+            return Collections.emptyList();
+        }
+
     }
 }

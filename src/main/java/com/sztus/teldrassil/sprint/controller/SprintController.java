@@ -4,8 +4,10 @@ package com.sztus.teldrassil.sprint.controller;
 import com.alibaba.nacos.common.utils.Objects;
 import com.sztus.framework.component.core.type.AjaxResult;
 import com.sztus.framework.component.core.type.ProcedureException;
+import com.sztus.teldrassil.sprint.object.request.TaskInfoRequest;
 import com.sztus.teldrassil.sprint.object.response.SprintTaskInfoResponse;
 import com.sztus.teldrassil.sprint.object.response.SystemSummaryResponse;
+import com.sztus.teldrassil.sprint.object.view.SprintEmployeeView;
 import com.sztus.teldrassil.sprint.object.view.SystemViewForSprint;
 import com.sztus.teldrassil.sprint.service.SprintService;
 import com.sztus.teldrassil.sprint.type.constant.SprintActionConstant;
@@ -32,18 +34,14 @@ public class SprintController {
 
 
     @GetMapping(SprintActionConstant.GET_TASK_INFO)
-    public String listSprintTask(@RequestParam("sprintId") Long sprintId, @RequestParam("lineId") Integer lineId) throws ProcedureException {
+    public String listSprintTask(TaskInfoRequest taskInfoRequest) throws ProcedureException {
 
-        if (Objects.isNull(sprintId)) {
-            throw new ProcedureException(SprintErrorCode.PARAMETER_CHECK_ERROR);
-        }
-
-        SprintTaskInfoResponse response = sprintService.listSprintTaskBySprintIdAndDepartmentId(sprintId, lineId);
+        SprintTaskInfoResponse response = sprintService.listSprintTaskBySprintIdAndDepartmentId(taskInfoRequest);
         return AjaxResult.success(response);
     }
 
     @GetMapping(SprintActionConstant.GET_SYSTEM_SUMMARY)
-    public String systemSummaryQuery(@RequestParam("sprintId") Long sprintId, @RequestParam("lineId") Integer lineId) throws ProcedureException {
+    public String systemSummaryQuery(@RequestParam("sprintId") Long sprintId, @RequestParam(value = "lineId",required = false) Long lineId) throws ProcedureException {
 
         if (Objects.isNull(sprintId)) {
             throw new ProcedureException(SprintErrorCode.PARAMETER_CHECK_ERROR);
@@ -58,6 +56,13 @@ public class SprintController {
 
         List<SystemViewForSprint> viewForSprints = sprintService.systemListQuery();
         return AjaxResult.success(viewForSprints);
+    }
+
+    @GetMapping(SprintActionConstant.LIST_EMPLOYEE)
+    public String employeeListQuery(@RequestParam(value = "lineId",required = false) Long lineId) {
+
+        List<SprintEmployeeView> employeeViews = sprintService.employeeListQuery(lineId);
+        return AjaxResult.success(employeeViews);
     }
 
 }

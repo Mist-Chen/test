@@ -1,5 +1,6 @@
 package com.sztus.teldrassil.sprint.object.response;
 
+import com.sztus.teldrassil.sprint.object.business.vo.TaskStatusCountVo;
 import lombok.Data;
 
 /**
@@ -17,16 +18,5 @@ public class SprintPlanResponse {
 
     private String startDate;
 
-    private Integer ratioOfSprintTask;
-
-    private Integer countOfToDo;
-
-    private Integer countOfInProcess;
-
-    private Integer countOfCancelled;
-
-    private Integer countOfReleased;
-
-    private Integer countOfTotal;
-
+    private TaskStatusCountVo taskStatusCountVo;
 }

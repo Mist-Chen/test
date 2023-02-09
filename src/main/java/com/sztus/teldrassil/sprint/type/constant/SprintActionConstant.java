@@ -14,6 +14,7 @@ public interface SprintActionConstant {
 
     String LIST_SYSTEM = "/list-system";
 
+    String LIST_EMPLOYEE= "/list-employee";
 
     String SYSTEM_ALL_LIST = "/system/all-list";
 }
