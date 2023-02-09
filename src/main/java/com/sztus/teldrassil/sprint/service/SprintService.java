@@ -185,7 +185,7 @@ public class SprintService {
 
         List<RatioOfWorkloadBo> ratioOfWorkloadBos = getRatioOfWorkloadBo(employeeList, currentTime, endTime);
         if (CollectionUtils.isEmpty(ratioOfWorkloadBos)) {
-            LOGGER.info("[]The query ratio Of Work load is empty.employeeIds:{},currentTime：{},endTime:{}", employeeList, currentTime, endTime);
+            LOGGER.info("[SprintService-->>getRatioOfWorkloadBo]The query ratio Of Work load is empty.employeeIds:{},currentTime：{},endTime:{}", employeeList, currentTime, endTime);
             return Collections.EMPTY_LIST;
         }
         //按employeeId分组  并赋名字 和计算值
@@ -242,7 +242,7 @@ public class SprintService {
                 employeeIdAndName.put(id, fullName);
             });
         }
-        LOGGER.info("[]The Employee information obtained through the api is:{} .lineId:{}", JSON.toJSONString(employeeIdAndName, SerializerFeature.WriteMapNullValue), lineId);
+        LOGGER.info("[getRatioOfWorkloadBo-->>getEmployeeIdAndName]The Employee information obtained through the api is:{} .lineId:{}", JSON.toJSONString(employeeIdAndName, SerializerFeature.WriteMapNullValue), lineId);
         return employeeIdAndName;
     }
 
