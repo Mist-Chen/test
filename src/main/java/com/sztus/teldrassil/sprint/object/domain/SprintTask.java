@@ -30,12 +30,6 @@ public class SprintTask {
     private Integer priority;
 
     @Column
-    private String title;
-
-    @Column
-    private String description;
-
-    @Column
     private Long startDate;
 
     @Column
