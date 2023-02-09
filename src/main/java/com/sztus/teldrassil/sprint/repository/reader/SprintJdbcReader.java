@@ -81,6 +81,7 @@ public class SprintJdbcReader extends BaseJdbcReader {
         paramMap.put(SprintCacheKey.BEGIN, currentTime);
         paramMap.put(SprintCacheKey.END, endTime);
         if (Objects.nonNull(employeeList)) {
+
             sql.append(" AND assignee_id in (:employeeList) ");
             paramMap.put(SprintCacheKey.EMPLOYEE_LIST, employeeList);
         }
