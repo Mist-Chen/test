@@ -62,6 +62,8 @@ public class SprintJdbcReader extends BaseJdbcReader {
         HashMap<String, Object> paramMap = new HashMap<>(1);
         sql.append(" SELECT t1.plan_id,t2.`status`,COUNT(t2.id) statusCount ");
         sql.append(" FROM relation_sprint_task_to_plan t1 ");
+
+
         sql.append(" INNER JOIN sprint_task t2 ON t1.task_id=t2.id ");
         if (Objects.nonNull(planIds)) {
             sql.append(" WHERE t1.plan_id  in ( :planIds) ");
